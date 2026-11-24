@@ -1,0 +1,65 @@
+name: Preview on staging
+
+# Run this from the Actions tab: "Preview on staging" -> "Run workflow".
+# Type a pull request number (like 1) or a branch name from the live site repo.
+on:
+  workflow_dispatch:
+    inputs:
+      what:
+        description: "PR number (e.g. 1) or branch name to preview. Type main to see the live site."
+        required: true
+        default: "1"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Work out what to fetch
+        id: ref
+        env:
+          WHAT: ${{ inputs.what }}
+        run: |
+          WHAT="$(echo "$WHAT" | tr -d ' #')"
+          if [[ "$WHAT" =~ ^[0-9]+$ ]]; then
+            echo "ref=refs/pull/$WHAT/head" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=$WHAT" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Get the site files
+        uses: actions/checkout@v4
+        with:
+          repository: ojasamin77/1848-blooms-site-3
+          ref: ${{ steps.ref.outputs.ref }}
+          path: site
+
+      - name: Mark pages as staging (hidden from search engines)
+        env:
+          WHAT: ${{ inputs.what }}
+        run: |
+          cd site
+          rm -rf .git .github
+          SHA_LABEL="Staging preview: $(echo "$WHAT" | tr -cd '[:alnum:]/._ -')"
+          for f in *.html; do
+            sed -i "0,/<head>/s##<head><meta name=\"robots\" content=\"noindex, nofollow\">#" "$f"
+            sed -i "0,/<\/body>/s##<div style=\"position:fixed;bottom:8px;left:8px;z-index:99999;background:\#b00020;color:\#fff;font:600 12px/1.4 sans-serif;padding:4px 10px;border-radius:4px;opacity:.85;pointer-events:none\">$SHA_LABEL</div></body>#" "$f"
+          done
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
