@@ -39,7 +39,7 @@ jobs:
           fi
 
       - name: Get the site files
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ojasamin77/1848-blooms-site-3
           ref: ${{ steps.ref.outputs.ref }}
@@ -57,9 +57,9 @@ jobs:
             sed -i "0,/<\/body>/s##<div style=\"position:fixed;bottom:8px;left:8px;z-index:99999;background:\#b00020;color:\#fff;font:600 12px/1.4 sans-serif;padding:4px 10px;border-radius:4px;opacity:.85;pointer-events:none\">$SHA_LABEL</div></body>#" "$f"
           done
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
