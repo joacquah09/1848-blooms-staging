@@ -1,7 +1,7 @@
 name: Preview on staging
 
 # Run this from the Actions tab: "Preview on staging" -> "Run workflow".
-# Type a pull request number (like 1) or a branch name from the live site repo.
+# Type a pull request number (like 4) or a branch name from the live site repo.
 on:
   workflow_dispatch:
     inputs:
@@ -9,6 +9,10 @@ on:
         description: "PR number (e.g. 1) or branch name to preview. Type main to see the live site."
         required: true
         default: "1"
+      repo:
+        description: "Which site repo to preview from"
+        required: true
+        default: "joacquah09/1848-blooms-site"
 
 permissions:
   contents: read
@@ -38,7 +42,7 @@ jobs:
       - name: Get the site files
         uses: actions/checkout@v6
         with:
-          repository: ojasamin77/1848-blooms-site-3
+          repository: ${{ inputs.repo }}
           ref: ${{ steps.ref.outputs.ref }}
           path: site
 
